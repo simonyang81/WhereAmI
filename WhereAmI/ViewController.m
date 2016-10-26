@@ -7,7 +7,7 @@
 //
 
 #import "ViewController.h"
-#import <CoreLocation/CoreLocation.h>
+#import "Place.h"
 
 @interface ViewController () <CLLocationManagerDelegate>
 
@@ -21,6 +21,8 @@
 @property (weak, nonatomic) IBOutlet UILabel *altitudeLabel;
 @property (weak, nonatomic) IBOutlet UILabel *verticalAccuracyLabel;
 @property (weak, nonatomic) IBOutlet UILabel *distanceTraveledLabel;
+
+@property (weak, nonatomic) IBOutlet MKMapView *mapView;
 
 @end
 
@@ -47,12 +49,14 @@
         case kCLAuthorizationStatusAuthorizedAlways:
         case kCLAuthorizationStatusAuthorizedWhenInUse:
             [self.locationManager startUpdatingLocation];
+            self.mapView.showsUserLocation = YES;
             break;
 
         case kCLAuthorizationStatusNotDetermined:
         case kCLAuthorizationStatusRestricted:
         case kCLAuthorizationStatusDenied:
             [self.locationManager stopUpdatingLocation];
+            self.mapView.showsUserLocation = NO;
             break;
     }
 
@@ -103,6 +107,16 @@
 
     if (self.previousPoint == nil) {
         self.totalMovementDistance = 0;
+
+        Place *start = [Place new];
+        start.coordinate = newLocation.coordinate;
+        start.title = @"Start Point";
+        start.subtitle = @"This is where we started";
+        [self.mapView addAnnotation:start];
+
+        MKCoordinateRegion region = MKCoordinateRegionMakeWithDistance(newLocation.coordinate, 100, 100);
+        [self.mapView setRegion:region animated:YES];
+
     } else {
         NSLog(@"movement distance: %f", [newLocation distanceFromLocation:self.previousPoint]);
         self.totalMovementDistance += [newLocation distanceFromLocation:self.previousPoint];
